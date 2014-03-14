@@ -1,4 +1,4 @@
-# Lively Web [![Build Status](https://secure.travis-ci.org/LivelyKernel/node-lively-loader.png?branch=master)](http://travis-ci.org/LivelyKernel/node-lively-loader)
+# Lively Web [![Build Status](https://travis-ci.org/LivelyKernel/node-lively-loader.png?branch=master)](https://travis-ci.org/LivelyKernel/node-lively-loader)
 
 Load [Lively](https://github.com/LivelyKernel/LivelyKernel/) modules inside node.js.
 
