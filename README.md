@@ -4,7 +4,7 @@ Load [Lively](https://github.com/LivelyKernel/LivelyKernel/) modules inside node
 
 ## Run the tests
 
-`$ npm test`.
+Run `$ npm test`.
 
 ## Contributing
 
