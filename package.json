@@ -1,0 +1,20 @@
+{
+  "author": "Robert Krahn <robert.krahn@gmail.com>",
+  "name": "lively-loader",
+  "description": "Load Lively Kernel modules into node.js",
+  "version": "0.1.0",
+  "homepage": "http://lively-web.org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/LivelyKernel/node-lively-loader"
+  },
+  "main": "index.js",
+  "dependencies": {
+  },
+  "devDependencies": {
+  },
+  "optionalDependencies": {},
+  "scripts": {
+    "test": "node_modules/nodeunit/bin/nodeunit tests/test.js"
+  }
+}
