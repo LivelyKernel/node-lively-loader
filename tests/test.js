@@ -13,11 +13,20 @@ var tests = {
     callback();
   },
 
-  testSimpleFileFuse: function(test) {
+  testSimpleModuleLoad: function(test) {
     livelyLoader.setRoot(path.join(__dirname, 'test-modules'));
     livelyLoader.load('a', function(err) {
       test.ok(!err, String(err));
     	test.deepEqual(livelyLoaderTests.loadedModules, ['a']);
+    	test.done();
+    });
+  },
+
+  testLoadModuleWithDependency: function(test) {
+    livelyLoader.setRoot(path.join(__dirname, 'test-modules'));
+    livelyLoader.load('b', function(err) {
+      test.ok(!err, String(err));
+    	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'b']);
     	test.done();
     });
   }

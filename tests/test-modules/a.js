@@ -1,3 +1,4 @@
 module('a').requires().toRun(function() {
-    livelyLoaderTests.loadedModules.push('a');
+  console.log('module a executing');
+  livelyLoaderTests.loadedModules.push('a');
 });
