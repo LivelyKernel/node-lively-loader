@@ -12,7 +12,7 @@ function log(/*args*/) {
 }
 
 function resolve(moduleOrName) {
-  var name, module;
+  var name, module
   if (typeof moduleOrName === 'string') {
     name = moduleOrName; module = lvModule(name);
   } else {
@@ -65,7 +65,7 @@ function lvModule(mName) {
 
     removeRequiredModule: function (requiredModule) {
       log("%s was loaded", requiredModule);
-      if (this.pendingRequirements && !this.pendingRequirements.include(requiredModule)) {
+      if (this.pendingRequirements && this.pendingRequirements.indexOf(requiredModule) === -1) {
         console.error('requiredModule not there');
       }
       this.pendingRequirements = this.pendingRequirements.filter(function(req) {
@@ -171,7 +171,7 @@ function lvRequire(/*deps*/) {
   function moduleExecute(code) {
       var debugCode = code;
        // pass in own module name for nested requirements
-      code = code.curry(thisModule);
+      code = code.bind(null, thisModule);
        // run code with namespace modules as additional parameters
       function codeWrapper() {
           try {
