@@ -1,4 +1,3 @@
-var vm = require("vm");
 var util = require("util");
 var path = require("path");
 var fs = require("fs");
@@ -13,7 +12,7 @@ function log(/*args*/) {
 }
 
 function resolve(moduleOrName) {
-  var name, module
+  var name, module;
   if (typeof moduleOrName === 'string') {
     name = moduleOrName; module = lvModule(name);
   } else {
@@ -52,6 +51,7 @@ function lvModule(mName) {
     dependendModules: [],
     requires: null,
     wasDefined: false,
+    _isLoaded: false,
 
     uri: function() {
       return this.__cachedUri;
@@ -112,17 +112,20 @@ function lvModule(mName) {
     load: function(loadSync) {
       if (loadSync) throw new Error('sync loading not yet supported');
       if (this.isLoaded()) {
+          log("%s loaded, running callbacks...", this, this.callbacks);
           this.runOnloadCallbacks();
           return;
       }
 
       if (this.wasDefined && !this.hasPendingRequirements()) {
+          log("%s not yet loaded but has no requirements, running callbacks...", this);
           this.runOnloadCallbacks();
           this.informDependendModules();
           return;
       }
 
       if (this.isLoading() || this.wasDefined) {
+          log("%s not yet loaded, loading %s first", this, this.pendingRequirements);
           this.loadRequirementsFirst();
           return;
       }
@@ -132,7 +135,7 @@ function lvModule(mName) {
     },
 
     isLoaded: function() {
-      return this.wasDefined && this.pendingRequirements.length === 0;
+      return this._isLoaded;
     },
 
     isLoading: function () {
@@ -140,6 +143,9 @@ function lvModule(mName) {
       // if (this.uri().include('anonymous')) return true;
       return !!this.wasDefined;
     },
+
+    activate: function() {},
+    deactivate: function() {},
 
     toString: function() {
       return util.format("lvModule(%s)", this.namespaceIdentifier);
@@ -158,18 +164,34 @@ function lvRequire(/*deps*/) {
   var dependencyNames = args.length === 1 && Array.isArray(args[0]) ?
     args[0] : args;
 
-  var deps = dependencyNames.map(lvModule);
+  var requiredModules = dependencyNames.map(lvModule);
 
-  deps.forEach(thisModule.addRequiredModule.bind(thisModule));
+  requiredModules.forEach(thisModule.addRequiredModule.bind(thisModule));
 
-  return {
-    toRun: function(cb) {
-      thisModule.addOnloadCallback(cb, 0/*add as first callback*/);
-
+  function moduleExecute(code) {
+      var debugCode = code;
+       // pass in own module name for nested requirements
+      code = code.curry(thisModule);
+       // run code with namespace modules as additional parameters
+      function codeWrapper() {
+          try {
+              thisModule.activate();
+              code.apply(this, requiredModules);
+              thisModule._isLoaded = true;
+          } catch(e) {
+              console.error;(e, debugCode);
+          } finally {
+              thisModule.deactivate();
+          }
+      }
+      thisModule.addOnloadCallback(codeWrapper, 0/*add as first callback*/);
+      // wasDefined: module body and module requirements encountered but
+      // body not necessarily executed or requirements loaded
       thisModule.wasDefined = true;
       thisModule.load();
-    }
-  }; 
+  }
+
+  return {toRun: moduleExecute};
 
 }
 
@@ -188,7 +210,10 @@ function runModule(m, next) {
   var err;
   try {
     eval(m.__wrappedSource);
-  } catch (e) { err = e; }
+  } catch (e) {
+    console.error("Error when loading %s: ", m, e.stack || e);
+    err = e;
+  }
   next(err, m);
 }
 

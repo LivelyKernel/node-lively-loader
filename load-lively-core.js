@@ -77,7 +77,7 @@ Global.lively = lvLoader.module("lively");
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // 3. load non-modules
 require(path.join(livelyCoreDir, 'lively/Migration.js'));
-require(path.join(livelyCoreDir, 'lively/JSON.js'));
+// require(path.join(livelyCoreDir, 'lively/JSON.js'));
 require(path.join(livelyCoreDir, 'lively/lang/Object.js'));
 require(path.join(livelyCoreDir, 'lively/lang/Function.js'));
 require(path.join(livelyCoreDir, 'lively/lang/String.js'));
@@ -86,10 +86,10 @@ require(path.join(livelyCoreDir, 'lively/lang/Number.js'));
 require(path.join(livelyCoreDir, 'lively/lang/Date.js'));
 require(path.join(livelyCoreDir, 'lively/lang/Worker.js'));
 require(path.join(livelyCoreDir, 'lively/lang/LocalStorage.js'));
-require(path.join(livelyCoreDir, 'lively/defaultconfig.js'));
+// require(path.join(livelyCoreDir, 'lively/defaultconfig.js'));
 require(path.join(livelyCoreDir, 'lively/Base.js'));
 // require(path.join('core/lively/ModuleSystem.js))
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // 4. load core modules
-// lvLoader.load('lively.Helper')
+lvLoader.load('lively.Helper')
