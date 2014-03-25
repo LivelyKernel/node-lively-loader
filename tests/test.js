@@ -5,7 +5,10 @@ var tests = {
 
   setUp: function (callback) {
     global.livelyLoaderTests = { loadedModules: [] }
-    livelyLoader.start({}, callback);
+    livelyLoader.start({}, function() {
+        lively.Config.codeBase = 'file://' + path.join(__dirname, 'test-modules') + '/';
+        callback();
+    });
   },
 
   tearDown: function (callback) {
@@ -25,7 +28,6 @@ var tests = {
   },
 
   testSimpleModuleLoad: function(test) {
-    lively.Config.codeBase = 'file://' + path.join(__dirname, 'test-modules') + '/';
     lively.require('a').toRun(function() {
     	test.deepEqual(livelyLoaderTests.loadedModules, ['a']);
     	test.done();
@@ -33,7 +35,6 @@ var tests = {
   },
 
   testLoadModuleWithDependency: function(test) {
-    lively.Config.codeBase = 'file://' + path.join(__dirname, 'test-modules') + '/';
     lively.require('b').toRun(function() {
     	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'b']);
     	test.done();
