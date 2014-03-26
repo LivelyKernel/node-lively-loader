@@ -33,6 +33,7 @@ function runCode(fn, source, next) {
     log("runCode %s", fn);
     var err;
     try {
+        source += '\n//@ sourceURL=' + fn + '\n';
         eval(source);
     } catch (e) {
         console.error("Error when loading %s: ", fn, e.stack || e);
