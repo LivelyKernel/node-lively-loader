@@ -68,7 +68,24 @@ var tests = {
             if (!test1 || !test2) setTimeout(finish, 20);
             else test.done();
         })();
-    }
+    },
+
+    testLoadModuleWithError: function(test) {
+        lively.require('d').toRun(function() {
+            test.ok(false, 'require body executed also dependencies couldn\'t be loaded?!');
+        });
+        setTimeout(function() {
+        	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.moduleWithError']);
+            test.done();
+        }, 200);
+    },
+
+    // testLoadNonExistingModule: function(test) {
+    //     lively.require('nonExisiting').toRun(function() {
+    //     	test.deepEqual(livelyLoaderTests.loadedModules, []);
+    //         test.done();
+    //     });
+    // }
 
 };
 
