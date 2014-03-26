@@ -47,18 +47,19 @@ function runCode(fn, source, next) {
 var loadState = {};
 
 function ensureLoadState(url) {
-    return loadState[url] || (loadState[url] = {isLoading: false, isLoaded: false, callbacks: []});
+    return loadState[url] || (loadState[url] = {
+        isLoading: false,
+        isLoaded: false,
+        error: null,
+        callbacks: []
+    });
 }
 
-function isLoading(url) {
-    var st = ensureLoadState(url);
-    return st ? !!st.isLoading : false;
-}
+function isLoading(url) { return !!ensureLoadState(url).isLoading; }
 
-function isLoaded(url) {
-    var st = ensureLoadState(url);
-    return st ? !!st.isLoaded : false;
-}
+function isLoaded(url) { return !!ensureLoadState(url).isLoaded; }
+
+function hasError(url) { return !!ensureLoadState(url).error; }
 
 function signalIsLoaded(url) {
     var st = ensureLoadState(url);
@@ -73,6 +74,13 @@ function signalIsLoading(url) {
     st.isLoaded = false;
 }
 
+function signalError(url, err) {
+    var st = ensureLoadState(url);
+    st.isLoading = false;
+    st.isLoaded = false;
+    st.error = err;
+}
+
 function addCallback(url, callback) {
     callback && ensureLoadState(url).callbacks.push(callback);
 }
@@ -80,18 +88,25 @@ function addCallback(url, callback) {
 var loader = {
 
     loadJs: function (url, onLoadCb, loadSync, okToUseCache, cacheQuery) {
+        if (hasError(url)) {
+            console.warn("trying to load %s but previous load attempt threw error!");
+            return;
+        }
         if (isLoaded(url)) { onLoadCb && onLoadCb.call(global); return; }
         addCallback(url, onLoadCb);
         if (isLoading(url)) return;
+        signalIsLoading(url);
         async.waterfall([
             resolve(url),
             readFromDisk,
             wrapCode,
             runCode
         ], function(err) {
-            if (err) { console.error("failed loading %s:\n", url, err); return; }
-            log('loaded %s%s', url);
-            signalIsLoaded(url);
+            log('loaded %s', url);
+            if (err) {
+                console.error("failed loading %s:\n", url, err);
+                signalError(url, err);
+            } else signalIsLoaded(url);
         });
     }
 }
