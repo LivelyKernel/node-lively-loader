@@ -18,6 +18,6 @@
   },
   "optionalDependencies": {},
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha  tests/test.js"
+    "test": "tests/run-tests.sh"
   }
 }
