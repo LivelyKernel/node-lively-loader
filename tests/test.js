@@ -1,84 +1,111 @@
-var path = require("path"),
+/*global describe, it*/
+
+var path = require("path");
+var assert = require("assert")
+var livelyLoader;
+var debug = false;
+
+function log(/*args*/) {
+  if (debug) console.log.apply(console, arguments);
+}
+
+describe('lively loader', function() {
+
+  beforeEach(function(callback) {
+    delete require.cache[require.resolve('../index.js')];
     livelyLoader = require('../index.js');
 
-var tests = {
+    log("setup");
+    global.livelyLoaderTests = { loadedModules: [] }
+    livelyLoader.start({
+      rootPath: process.env.LIVELY
+    }, function() {
+      lively.Config.codeBase = 'file://' + path.join(__dirname, 'test-modules') + '/';
+      log("setup done");
+      callback();
+    });
+  });
 
-    setUp: function (callback) {
-        global.livelyLoaderTests = { loadedModules: [] }
-        livelyLoader.start({
-            rootPath: process.env.LIVELY
-        }, function() {
-            lively.Config.codeBase = 'file://' + path.join(__dirname, 'test-modules') + '/';
-            callback();
-        });
-    },
+  afterEach(function(callback) {
+    try {
+      Global.subNamespaces(true).forEach(function(ea) {
+        if (ea !== lively) ea.remove();
+      })
+    } catch (e) { console.error(String(e)); }
+    delete global.livelyLoaderTests;
+    log("tearDown");
+    callback();
+  });
 
-    tearDown: function (callback) {
-        try {
-            livelyLoaderTests.loadedModules.forEach(function(ea) {
-                lively.module(ea).remove();
-            });
-        } catch (e) { console.error(String(e)); }
-        delete global.livelyLoaderTests;
-        callback();
-    },
+  it("testIfItWorksAtAll", function(done) {
+    log("testIfItWorksAtAll");
+    assert.ok(!!Object.extend, 'lively extensions not loaded?');
+    assert.ok(!!lively.Config, 'lively objects not loaded?');
+    assert.ok(!!lively.Module, 'lively objects not loaded 2?');
 
-    testIfItWorksAtAll: function(test) {
-        test.ok(!!Object.extend, 'lively extensions not loaded?');
-        test.ok(!!lively.Config, 'lively objects not loaded?');
-        test.ok(!!lively.Module, 'lively objects not loaded 2?');
+    var m = lively.module('foo.bar');
+    assert.equal(m.uri(), lively.Config.codeBase + 'foo/bar.js');
+    log("... testIfItWorksAtAll done");
+    done();
+  });
 
-        var m = lively.module('foo.bar');
-        test.equals(m.uri(), lively.Config.codeBase + 'foo/bar.js');
-        test.done();
-    },
+  it("testSimpleModuleLoad", function(done) {
+    log("testSimpleModuleLoad");
+    lively.require('a').toRun(function() {
+      assert.deepEqual(livelyLoaderTests.loadedModules, ['a']);
+      log("... testSimpleModuleLoad done");
+      done();
+    });
+  });
 
-    testSimpleModuleLoad: function(test) {
-        lively.require('a').toRun(function() {
-        	test.deepEqual(livelyLoaderTests.loadedModules, ['a']);
-        	test.done();
-        })
-    },
+  it("testLoadModuleWithDependency", function(done) {
+    log("testLoadModuleWithDependency")
+    lively.require('b').toRun(function() {
+      assert.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'b']);
+      log("... testLoadModuleWithDependency done");
+      done();
+    });
+  });
 
-    testLoadModuleWithDependency: function(test) {
-        lively.require('b').toRun(function() {
-        	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'b']);
-        	test.done();
-        });
-    },
+  it("testLoadModuleWithDoubleDependency", function(done)  {
+    log("testLoadModuleWithDoubleDependency");
+    lively.require('c').toRun(function() {
+      // assert.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.d', 'c']);
+      log("... testLoadModuleWithDoubleDependency done");
+      done();
+    });
+  });
 
-    testLoadModuleWithDoubleDependency: function(test) {
-        lively.require('c').toRun(function() {
-        	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.d', 'c']);
-        	test.done();
-        });
-    },
+  it("testConcurrentRequires", function(done) {
+    log("testConcurrentRequires");
+    var test1 = false, test2 = false;
+    lively.require('c').toRun(function() {
+      assert.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.d', 'c'], '1');
+      test1 = true;
+    });
+    lively.require('c').toRun(function() {
+      assert.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.d', 'c'], '2');
+      test2 = true;
+    });
+    (function finish() {
+      if (!test1 || !test2) setTimeout(finish, 20);
+      else {
+        done();
+        log("... testConcurrentRequires done");
+      }
+    })();
+  });
 
-    testConcurrentRequires: function(test) {
-        var test1 = false, test2 = false;
-        lively.require('c').toRun(function() {
-        	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.d', 'c'], '1');
-        	test1 = true;
-        });
-        lively.require('c').toRun(function() {
-        	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.d', 'c'], '2');
-        	test2 = true;
-        });
-        (function finish() {
-            if (!test1 || !test2) setTimeout(finish, 20);
-            else test.done();
-        })();
-    },
-
-    testLoadModuleWithError: function(test) {
-        lively.require('d').toRun(function() {
-            test.ok(false, 'require body executed also dependencies couldn\'t be loaded?!');
-        });
-        setTimeout(function() {
-        	test.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.moduleWithError']);
-            test.done();
-        }, 200);
-    },
+  it("testLoadModuleWithError", function(done) {
+    log("testLoadModuleWithError")
+    lively.require('d').toRun(function() {
+      assert.ok(false, 'require body executed although dependencies couldn\'t be loaded?!');
+    });
+    setTimeout(function() {
+      assert.deepEqual(livelyLoaderTests.loadedModules, ['dir1.c', 'dir1.moduleWithError']);
+      done();
+    }, 200);
+  });
 
     // testLoadNonExistingModule: function(test) {
     //     lively.require('nonExisiting').toRun(function() {
@@ -87,6 +114,4 @@ var tests = {
     //     });
     // }
 
-};
-
-module.exports = tests;
+});

@@ -2,8 +2,11 @@ var util = require("util");
 var path = require("path");
 var fs = require("fs");
 var async = require("async");
+var livelyLang = require("lively.lang");
+var debug = false;
 
 function log(/*args*/) {
+    if (!debug) return;
     var args = Array.prototype.slice.call(arguments);
     args[0] = '[lv-module-loader] ' + args[0];
     console.log.apply(console, args);
@@ -115,15 +118,20 @@ var loader = {
 
 var started = false;
 function start(options, thenDo) {
+    if (!process.env.LIVELY) throw new Error("LIVELY environment variable is undefined. It should point to the lively base directory");
+
     if (started) { thenDo && thenDo(null); return; }
-    var options = options ? util._extend(defaultOptions, options) : defaultOptions;
+
+    livelyLang.deprecatedLivelyPatches();
+
+    options = options ? util._extend(defaultOptions, options) : defaultOptions;
     require('./lib/bootstrap')(defaultOptions);
     started = true;
-    console.log('started...');
     thenDo && thenDo(null);
 }
 
 var baseURL = 'file://' + process.env.LIVELY;
+
 
 var defaultOptions = {
     loader: loader,
@@ -135,12 +143,6 @@ var defaultOptions = {
     bootstrapFiles: [
         'core/lively/Migration.js',
         // 'core/lively/JSON.js',
-        'core/lively/lang/Object.js',
-        'core/lively/lang/Function.js',
-        'core/lively/lang/String.js',
-        'core/lively/lang/Array.js',
-        'core/lively/lang/Number.js',
-        'core/lively/lang/Date.js',
         // 'core/lively/lang/Worker.js',
         // 'core/lively/lang/LocalStorage.js',
         // 'core/lively/defaultconfig.js',

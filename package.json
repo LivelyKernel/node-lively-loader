@@ -10,13 +10,14 @@
   },
   "main": "index.js",
   "dependencies": {
-    "async": "~0.2.10"
+    "async": "~0.2.10",
+    "lively.lang": "git://github.com/LivelyKernel/lively.lang.git#master"
   },
   "devDependencies": {
-    "nodeunit": "~0.8.6"
+    "mocha": "^2.0.1"
   },
   "optionalDependencies": {},
   "scripts": {
-    "test": "node_modules/nodeunit/bin/nodeunit tests/test.js"
+    "test": "node_modules/mocha/bin/mocha  tests/test.js"
   }
 }
