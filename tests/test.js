@@ -1,4 +1,4 @@
-/*global describe, it*/
+/*global describe, it,afterEach, beforeEach,require,console,__dirname,global,process,setTimeout*/
 
 var path = require("path");
 var assert = require("assert")
