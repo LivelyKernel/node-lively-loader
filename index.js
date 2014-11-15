@@ -5,7 +5,7 @@ var path       = require("path");
 var fs         = require("fs");
 var async      = require("async");
 var livelyLang = require("lively.lang");
-var debug      = true;
+var debug      = false;
 
 function log(/*args*/) {
     if (!debug) return;
@@ -89,11 +89,12 @@ function signalError(url, err) {
     st.isLoading = false;
     st.isLoaded = false;
     st.error = err;
+    while (st.callbacks[0]) st.callbacks.shift().call(global, err);
 }
 
 function load(url, onLoadCb, contentProcessor) {
     if (hasError(url)) {
-        console.warn("trying to load %s but previous load attempt threw error!");
+        log("trying to load %s but previous load attempt threw error!");
         return;
     }
     if (isLoaded(url)) { onLoadCb && onLoadCb.call(global, ensureLoadState(url).result); return; }
@@ -107,7 +108,7 @@ function load(url, onLoadCb, contentProcessor) {
     ], function(err, fn, result) {
         log('loaded %s', url);
         if (err) {
-            console.error("failed loading %s:\n", url, err);
+            log("failed loading %s:\n", url, err);
             signalError(url, err);
         } else signalIsLoaded(url, result);
     });
