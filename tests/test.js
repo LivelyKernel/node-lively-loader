@@ -49,6 +49,16 @@ describe('lively loader', function() {
     done();
   });
 
+  it("testIfLivelyNSisLoaded", function(done) {
+    log("testIfLivelyNSisLoaded");
+    livelyLoader.withLivelyNamespaceDo(function(err, lively) {
+      assert.ok(!!lively.Config, 'lively objects not loaded?');
+      assert.ok(!!lively.Module, 'lively objects not loaded 2?');
+      log("... testIfLivelyNSisLoaded done");
+      done();
+    });
+  });
+
   it("testSimpleModuleLoad", function(done) {
     log("testSimpleModuleLoad");
     lively.require('a').toRun(function() {

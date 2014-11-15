@@ -138,50 +138,58 @@ var loader = {
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-var lvDir = process.env.WORKSPACE_LK || process.env.LIVELY;
-if (!lvDir.match(/\/$/)) lvDir += "/";
-
 var started = false;
 function start(options, thenDo) {
-    if (!lvDir) throw new Error("LIVELY environment variable is undefined. It should point to the lively base directory");
-
     if (started) { thenDo && thenDo(null); return; }
+
+    var lvDir = options.livelyDirectory || process.env.WORKSPACE_LK || process.env.LIVELY;
+    if (!lvDir) throw new Error("Cannot find the Lively base direcrory. Use the option livelyDirectory or the environment variable LIVELY to set it.");
+    if (!lvDir.match(/\/$/)) lvDir += "/";
+    options.livelyDirectory = lvDir;
+
+    var server, addr;
+    if (options && options.lifeStar) {
+        server = options.lifeStar.getServer();
+        addr = server.address();
+    }
+
+    var baseURL = 'file://' + lvDir,
+        defaultOptions = {
+            loader: loader,
+            rootPath: baseURL,
+            location: {
+                isNodejs: true,
+                // href: "...",
+                host: addr ? addr.address + ":" + addr.port : null,
+                hostname: addr ? addr.address : null,
+                href: null,
+                origin: null,
+                pathname: null,
+                port: addr ? addr.port : addr,
+                protocol: server ? (server.config.enableSSL ? "https:" : "http:") : null,
+                toString: function() { return baseURL; }
+            },
+            locationDirectory: baseURL,
+            get codeBase() { return defaultOptions.rootPath.replace(/\/?$/, '/') + 'core/'; },
+            nodeJSURL: 'http://localhost:9001'
+        }
 
     livelyLang.deprecatedLivelyPatches();
 
     options = options ? util._extend(defaultOptions, options) : defaultOptions;
-    require('./lib/bootstrap')(defaultOptions, function(err) {
+    require('./lib/bootstrap')(defaultOptions, function(err, lively) {
         if (err) console.error("Error in lively-loader: ", err);
         started = true;
-        thenDo && thenDo(err);
+        thenDo && thenDo(err, lively);
     });
 }
 
-var baseURL = 'file://' + lvDir;
-
-var defaultOptions = {
-    loader: loader,
-    rootPath: baseURL,
-    location: {isNodejs: true, toString: function() { return baseURL; }},
-    locationDirectory: baseURL,
-    get codeBase() { return path.join(defaultOptions.rootPath, 'core/'); },
-    nodeJSURL: 'http://localhost:9001',
-    bootstrapFiles: [
-        'core/lively/Migration.js',
-        'core/lively/lang/Object.js',
-        'core/lively/lang/Function.js',
-        'core/lively/lang/String.js',
-        'core/lively/lang/Array.js',
-        'core/lively/lang/Number.js',
-        'core/lively/lang/Date.js',
-        'core/lively/lang/Worker.js',
-        'core/lively/lang/LocalStorage.js',
-        'core/lively/defaultconfig.js',
-        'core/lively/Base.js',
-        'core/lively/ModuleSystem.js']
-}
-
 module.exports = {
-    defaultOptions: defaultOptions,
-    start: start
+    start: start,
+    withLivelyNamespaceDo: function(startOptions, doFunc) {
+        if (typeof startOptions === 'function') {
+            doFunc = startOptions; startOptions = {};}
+        if (started) doFunc(null, Global.lively);
+        else start(startOptions, doFunc);
+    }
 }
