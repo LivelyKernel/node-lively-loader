@@ -15,7 +15,7 @@ function log(/*args*/) {
 }
 
 function resolve(url) {
-    return function(next) { next(null, url.replace(/^file:\/\//, '')); }
+    return function(next) { next(null, url.replace(/^file:\/\//, '')); };
 }
 
 function readFromDisk(fn, next) {
@@ -25,9 +25,10 @@ function readFromDisk(fn, next) {
 
 function wrapCode(fn, content, next) {
     log("wrapCode %s", fn);
-    var header = 'var require = lively.require;\n'
-               + 'var module = lively.module;\n';
-    next(null, fn, header + content);
+    var code = ";(function livelyCodeInNodejs(require, module, nodejs) {\n"
+            + content
+            + "\n})(lively.require, lively.module, {require: require, module: module});";
+    next(null, fn, code);
 }
 
 function runCode(fn, source, next) {

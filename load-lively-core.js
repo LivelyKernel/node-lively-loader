@@ -18,7 +18,7 @@ lvLoader.setRoot(livelyCoreDir);
 
 // -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 // 2. add expected objects/interfaces
-global.Global = global
+global.Global = global;
 Global.window = window = Global;
 // Global.document = document = doc;
 Global.console = console;
