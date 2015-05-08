@@ -4,6 +4,7 @@ if [[ -z $LIVELY ]]; then
     if [[ ! -d "$PWD/LivelyKernel" ]]; then
         echo "Lively not yet installed installed in $LIVELY"
         git clone git://github.com/LivelyKernel/LivelyKernel.git
+        npm install;
     fi
     export LIVELY="$PWD/LivelyKernel"
 fi

@@ -1,7 +1,7 @@
 /*global describe, it,afterEach, beforeEach,require,console,__dirname,global,process,setTimeout*/
 
 var path = require("path");
-var assert = require("assert")
+var assert = require("assert");
 var livelyLoader;
 var debug = false;
 
@@ -16,7 +16,7 @@ describe('lively loader', function() {
     livelyLoader = require('../index.js');
 
     log("setup");
-    global.livelyLoaderTests = { loadedModules: [] }
+    global.livelyLoaderTests = { loadedModules: [] };
     livelyLoader.start({
       rootPath: process.env.LIVELY
     }, function() {
@@ -30,7 +30,7 @@ describe('lively loader', function() {
     try {
       Global.subNamespaces(true).forEach(function(ea) {
         if (ea !== lively) ea.remove();
-      })
+      });
     } catch (e) { console.error(String(e)); }
     delete global.livelyLoaderTests;
     log("tearDown");
