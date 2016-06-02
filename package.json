@@ -2,15 +2,15 @@
   "author": "Robert Krahn <robert.krahn@gmail.com>",
   "name": "lively-loader",
   "description": "Load Lively Kernel modules into node.js",
-  "version": "0.2.5",
+  "version": "0.3.0",
   "homepage": "http://lively-web.org",
   "repository": {
     "type": "git",
     "url": "https://github.com/LivelyKernel/node-lively-loader"
   },
   "main": "index.js",
+  "engines" : { "node" : ">=4.0.0 <5.0.0" },
   "dependencies": {
-    "async": "~0.9",
     "lively.lang": ">=0.4.1"
   },
   "devDependencies": {
